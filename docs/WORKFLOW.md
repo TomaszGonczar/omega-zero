@@ -40,7 +40,8 @@ independent Reviewer; add a Scout only when the task needs discovery.
 - The Reviewer reruns the same command on the exact candidate. If the candidate revision changes,
   the review is void.
 - Record warnings for truncation, dirty state, missing fields, and nondeterminism. Persistent
-  disagreement between runs is `NONDETERMINISTIC`; do not rerun until the result is green.
+  disagreement between runs is `NONDETERMINISTIC`: do not keep rerunning merely until the result
+  turns green. Investigate the cause and record the nondeterminism instead.
 
 ## 3. Task Contract template
 

@@ -27,7 +27,7 @@ flowchart TB
     H --> P
     P -->|Task Contract| O
     O -->|separate worktree| B
-    O -->|exact workspace, read-only| S
+    O -->|workspace placement| S
     B --> G
     G --> R
     E --> R
@@ -93,10 +93,11 @@ must match the mechanism actually present.
 
 ## Evidence boundary
 
-What the rehearsal proved: the loop runs — contract, dispatch, isolated candidate, independent
-review of the exact revision, check rerun, reconciliation, worker release, and a stop before merge.
+What the rehearsal exercised and observed, with limitations: the loop runs — contract, dispatch,
+separate-worktree candidate, independent review of the exact revision, check rerun, reconciliation,
+worker release, and a stop before merge. That was a single run on a disposable fixture.
 
-What remains open: a real public-safe run on an external target repository; any merge automation
+What remains open: a real public-safe run; any merge automation
 (there is none); semantic correctness of a reviewed change (checks bound behavior, not meaning);
 containment of hostile code (no isolation is implemented here); and scaling beyond one Builder and
 one Reviewer (untested).

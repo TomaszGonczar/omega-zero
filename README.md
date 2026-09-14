@@ -38,10 +38,11 @@ Markdown; the consuming repository owns its code, checks, and integration.
 
 Honest status, as of this profile revision:
 
-- The vertical-slice rehearsal of this loop is proven: contract, dispatch, isolated candidate,
-  independent review of the exact revision, evidence reconciliation, worker release, and a stop
-  before merge.
-- A real, public-safe run on an external target repository is pending.
+- The vertical-slice rehearsal of this loop was exercised and observed once, with limitations:
+  contract, dispatch, separate-worktree candidate, independent review of the exact revision,
+  evidence reconciliation, worker release, and a stop before merge. One run on a disposable fixture
+  is evidence that the loop runs, not that it is production-ready.
+- A real, public-safe run is pending.
 - No auto-merge.
 - No semantic-correctness claim: checks and reviews bound behavior and evidence, not meaning.
 - No containment claim: nothing here isolates untrusted execution.
