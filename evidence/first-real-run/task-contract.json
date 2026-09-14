@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "intent": "Add a standard-library-only local reference validator for Omega Zero Task Contracts and Result Receipts without turning Omega Zero into a runtime, agent CLI, or service.",
+  "base_sha": "9f89350b7385fb17c4a8991acfca3accb8d3070c",
+  "allowed_paths": [
+    "README.md",
+    "docs/ARCHITECTURE.md",
+    "docs/WORKFLOW.md",
+    "tools/validate_evidence.py",
+    "tests/test_validate_evidence.py",
+    "tests/fixtures/zero-collected/task-contract.json",
+    "tests/fixtures/zero-collected/result-receipt.json",
+    "examples/task-contract.json",
+    "examples/result-receipt.json"
+  ],
+  "evidence_required": [
+    "exact candidate and parent revisions",
+    "exact changed-path set",
+    "unit-test collection and outcome",
+    "valid and zero-collected validator outcomes",
+    "determinism and output-bound checks",
+    "independent review",
+    "facts separated from inferences and uncertainties"
+  ],
+  "minimum_total_collected": 1,
+  "human_merge_only": true,
+  "provenance": {
+    "kind": "sanitized public derivative of a point-in-time task contract",
+    "verbatim_original": false,
+    "origin": "the run's local records, which remain outside this public package",
+    "note": "Intent wording was tightened and private identifiers were removed. The allowed paths, evidence requirements, minimum, and merge rule are as recorded."
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "outcome": "succeeded",
+  "artifact_or_commit": "9d79b90df4af533403e01757f6a5ca99e739d0fa",
+  "files": [
+    "README.md",
+    "docs/ARCHITECTURE.md",
+    "docs/WORKFLOW.md",
+    "tools/validate_evidence.py",
+    "tests/test_validate_evidence.py",
+    "tests/fixtures/zero-collected/task-contract.json",
+    "tests/fixtures/zero-collected/result-receipt.json",
+    "examples/task-contract.json",
+    "examples/result-receipt.json"
+  ],
+  "checks_run": [
+    {
+      "command": "python3 -m unittest discover -s tests -p 'test_*.py' -v",
+      "exit_code": 0,
+      "collected": 17,
+      "outcome": "passed"
+    },
+    {
+      "command": "python3 tools/validate_evidence.py --contract examples/task-contract.json --receipt examples/result-receipt.json",
+      "exit_code": 0,
+      "collected": 1,
+      "outcome": "passed"
+    },
+    {
+      "command": "python3 tools/validate_evidence.py --contract tests/fixtures/zero-collected/task-contract.json --receipt tests/fixtures/zero-collected/result-receipt.json",
+      "exit_code": 1,
+      "collected": 0,
+      "outcome": "failed"
+    },
+    {
+      "command": "git diff --check 9f89350b7385fb17c4a8991acfca3accb8d3070c..9d79b90df4af533403e01757f6a5ca99e739d0fa",
+      "exit_code": 0,
+      "collected": "not_applicable",
+      "outcome": "passed"
+    }
+  ],
+  "facts": [
+    "Candidate 9d79b90df4af533403e01757f6a5ca99e739d0fa has parent 9f89350b7385fb17c4a8991acfca3accb8d3070c and was the only commit above the frozen base when the source record was written.",
+    "The changed-path set equals the nine paths allowed by the contract, and the operating contract file was not modified.",
+    "The suites named above were run by hand in one local checkout; 17 tests passed, the example pair exited 0 with valid true, and the zero-collected fixture exited 1 with ZERO_COLLECTED.",
+    "The first review found that a JSON boolean schema version bypassed the integer schema-version check; the defect was reproduced independently and closed in the same candidate by a strict integer guard plus two regression tests.",
+    "The second independent review of the corrected candidate returned an acceptable verdict with no blocking findings.",
+    "No merge, push, or publication had occurred at the time the source record was written."
+  ],
+  "inferences": [
+    "The corrected candidate satisfied the structural acceptance criteria of the contract on the single local environment that was exercised.",
+    "A passing suite plus a worker completion claim was insufficient to catch the schema-version defect; only independent adversarial challenge surfaced it."
+  ],
+  "uncertainties": [
+    "The validator checks the shape of supplied JSON and the counts those inputs declare; it does not prove that any listed command ran, that a receipt is truthful, or that the work is correct in meaning.",
+    "The environment exercised here was one local checkout on one operating system and one interpreter version; no continuous-integration runner or second platform was used, so portability is unknown.",
+    "The originally named reviewer provider reached an account usage limit before completing its correction; the human changed the worker policy and the remaining correction and final review ran under a different provider. The substitution is recorded rather than hidden.",
+    "One abandoned worker session was retained in the control plane instead of being closed, because the control plane marked it user-owned after the usage prompt. It was not reused."
+  ],
+  "recorded_status": "unmerged at the time the source record was written",
+  "provenance": {
+    "kind": "sanitized public derivative of a point-in-time worker record",
+    "verbatim_original": false,
+    "origin": "the run's local records, which remain outside this public package",
+    "sanitization": "private absolute paths, personal identifiers, and local control-plane identifiers were removed, and wording was tightened; recorded outcomes, counts, and revisions were not changed",
+    "temporal_fact_preserved": "at the time the source record was written, the candidate was unmerged and unpushed",
+    "superseded_by": "evidence/first-real-run/LIFECYCLE.md, which records the later human-authorized local integration",
+    "note": "This file is a derivative, not the verbatim original, and does not claim to be. It preserves the temporal fact above and is not edited to imply that the later local integration had already happened.",
+    "project_dependencies_installed": false
+  }
+}

@@ -101,11 +101,13 @@ or merge commits.
 
 ## Evidence boundary
 
-What the rehearsal exercised and observed, with limitations: the loop runs — contract, dispatch,
-separate-worktree candidate, independent review of the exact revision, check rerun, reconciliation,
-worker release, and a stop before merge. That was a single run on a disposable fixture.
+What has been exercised and observed, with limitations: two runs. The loop itself was rehearsed on a
+disposable fixture — contract, dispatch, separate-worktree candidate, independent review of the exact
+revision, check rerun, reconciliation, worker release, and a stop before merge. One real local `B1` run
+was then observed against this repository: it produced the reference validator, independent review
+forced a correction before acceptance, and the human locally integrated the exact reviewed revision.
 
-What remains open: a real public-safe run; any merge automation
-(there is none); semantic correctness of a reviewed change (checks bound behavior, not meaning);
-containment of hostile code (no isolation is implemented here); and scaling beyond one Builder and
-one Reviewer (untested).
+What remains open: hosted CI (no hosted runner has executed this workflow); public publication (no
+remote, no push, no release); any merge automation (there is none); semantic correctness of a reviewed
+change (checks bound behavior, not meaning); containment of hostile code (no isolation is implemented
+here); and scaling beyond one Builder and one Reviewer (untested).

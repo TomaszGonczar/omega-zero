@@ -1,0 +1,145 @@
+name: ci
+
+# Deterministic checks for this repository only.
+#
+# Scope and known limits:
+# - standard library only: this repository declares and installs no project
+#   dependencies, so no dependency step is needed. The workflow itself still
+#   depends on GitHub-hosted infrastructure: when it runs, the checkout and
+#   setup steps execute on the runner and setup-python provisions an
+#   interpreter. Saying "no network" or "nothing is installed" about this
+#   workflow would be false. The workflow has not been executed or observed on
+#   a hosted runner; only the repository-owned run scripts below were executed
+#   locally, not the actions or the runner environment;
+# - every action reference below is an explicit version tag, not a commit-SHA
+#   pin, and none is claimed to be the newest or universally available. A tag
+#   is a moveable reference under the action author's control;
+# - these checks bound structure and declared counts. They do not prove that any
+#   command ran, that any evidence is truthful, or that the profile is correct
+#   in meaning, approved, or merged;
+# - the matrix is a list of interpreter versions to run on, not a tested-scale
+#   or multi-platform support claim.
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: stdlib suite (${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - "3.11"
+          - "3.12"
+          - "3.13"
+    steps:
+      - name: Check out the exact revision under test
+        uses: actions/checkout@v4.2.2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5.6.0
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Show the interpreter in use
+        run: |
+          python3 -VV
+          python3 -c "import sys; print('executable:', sys.executable)"
+
+      - name: Fail if test discovery collects zero tests
+        run: |
+          python3 - <<'PY'
+          import sys
+          import unittest
+          from pathlib import Path
+
+          tests_dir = Path.cwd() / "tests"
+
+          try:
+              suite = unittest.TestLoader().discover(str(tests_dir), pattern="test_*.py")
+              discovered = suite.countTestCases()
+          except Exception as error:
+              print(
+                  "DISCOVERY_ERROR: cannot discover tests under %s: %s" % (tests_dir, error)
+              )
+              sys.exit(1)
+
+          print("discovered:", discovered)
+
+          if discovered < 1:
+              print("ZERO_COLLECTED: unittest discovery collected no tests")
+              sys.exit(1)
+
+          print("nonzero collection confirmed")
+          PY
+
+      - name: Run the standard-library test suite
+        run: python3 -m unittest discover -s tests -p 'test_*.py' -v
+
+      - name: Validate the committed examples
+        run: |
+          python3 tools/validate_evidence.py \
+            --contract examples/task-contract.json \
+            --receipt examples/result-receipt.json
+
+      - name: Validate the committed first-real-run evidence pair
+        run: |
+          python3 tools/validate_evidence.py \
+            --contract evidence/first-real-run/task-contract.json \
+            --receipt evidence/first-real-run/result-receipt.json
+
+      - name: Check the ZERO_COLLECTED negative fixture
+        run: |
+          python3 - <<'PY'
+          import json
+          import subprocess
+          import sys
+          from pathlib import Path
+
+          completed = subprocess.run(
+              [
+                  sys.executable,
+                  "tools/validate_evidence.py",
+                  "--contract",
+                  "tests/fixtures/zero-collected/task-contract.json",
+                  "--receipt",
+                  "tests/fixtures/zero-collected/result-receipt.json",
+              ],
+              capture_output=True,
+              text=True,
+              cwd=Path.cwd(),
+          )
+          print("exit_code:", completed.returncode)
+          print("stdout:", completed.stdout.strip())
+          if completed.stderr.strip():
+              print("stderr:", completed.stderr.strip())
+
+          if completed.returncode != 1:
+              print("NEGATIVE_FIXTURE_UNEXPECTED_EXIT: expected exit 1")
+              sys.exit(1)
+
+          try:
+              payload = json.loads(completed.stdout)
+          except ValueError:
+              print("NEGATIVE_FIXTURE_UNPARSEABLE_OUTPUT")
+              sys.exit(1)
+
+          if payload.get("valid") is not False:
+              print("NEGATIVE_FIXTURE_UNEXPECTED_VALID: expected valid false")
+              sys.exit(1)
+
+          if "ZERO_COLLECTED" not in payload.get("errors", []):
+              print("NEGATIVE_FIXTURE_MISSING_ZERO_COLLECTED")
+              sys.exit(1)
+
+          print("ZERO_COLLECTED negative fixture confirmed")
+          PY
