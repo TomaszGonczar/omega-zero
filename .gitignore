@@ -1,0 +1,13 @@
+# Local-only files. This repository ships Markdown, so the list stays deliberately small.
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+
+# Editor and shell scratch
+*~
+*.swp
+
+# Python scratch, if a local check script is ever run by hand
+__pycache__/
+*.py[co]
