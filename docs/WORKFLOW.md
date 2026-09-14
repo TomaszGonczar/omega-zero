@@ -26,6 +26,13 @@ human decision. This file holds the two templates everything else refers to.
 Roles are task shapes, not permanent personas. Default fleet: one Principal, one Builder, one
 independent Reviewer; add a Scout only when the task needs discovery.
 
+The optional reference validator may be used between acceptance and reconciliation:
+`python3 tools/validate_evidence.py --contract <contract> --receipt <receipt>`.
+This validator only checks JSON shape and declared evidence totals.
+The required machine format for this repository is JSON, schema_version 1, not the YAML sketch below.
+It is not an Orca runtime or agent CLI path, it executes no workflow commands, and it does not grant
+approvals.
+
 ## 2. Workspace and check rules
 
 - One mutating worker per worktree. The Builder is the sole writer of its worktree.
@@ -42,6 +49,9 @@ independent Reviewer; add a Scout only when the task needs discovery.
 - Record warnings for truncation, dirty state, missing fields, and nondeterminism. Persistent
   disagreement between runs is `NONDETERMINISTIC`: do not keep rerunning merely until the result
   turns green. Investigate the cause and record the nondeterminism instead.
+- The workflow validator is bounded: errors are deterministic and bounded in output, but it does not
+  inspect command output truthfully, run commands, access Git/Orca internals, read declared evidence
+  paths, access networks, judge correctness, or make merge decisions.
 
 ## 3. Task Contract template
 
@@ -50,21 +60,26 @@ only the capabilities it actually exposes. Unknown or expanded action classes st
 rather than inheriting permission.
 
 ```yaml
+# Human-readable intent sketch only.
 intent: one sentence in the human's terms
-acceptance: observable outcomes
-out_of_scope: explicit exclusions
-repository: exact path or identity
 base_sha: frozen before work
-allowed_paths: exact list, or a bounded pattern
-capabilities:
-  read: scope
-  write: scope
-  exec: exact command classes
-  network: denied, or named hosts and purpose
-  external_tool: allow | ask | deny
-evidence_required: candidate revision, diff, checks, counts, warnings
-escalate_when: scope expands; secrets, network, external, or irreversible action is needed; state is unknown
 human_merge_only: true
+allowed_paths: ["path/relative"]
+evidence_required: ["candidate revision", "check evidence"]
+minimum_total_collected: 1
+schema_version: 1
+```
+
+```json
+{
+  "schema_version": 1,
+  "intent": "string",
+  "base_sha": "string",
+  "allowed_paths": ["path/relative"],
+  "evidence_required": ["candidate revision", "check evidence", "tests run"],
+  "minimum_total_collected": 1,
+  "human_merge_only": true
+}
 ```
 
 Keep it short enough that a human re-reads it before approving.
@@ -75,6 +90,7 @@ Written after each attempt. The Principal reconciles against it; the human reads
 point.
 
 ```yaml
+schema_version: 1
 outcome: succeeded | failed
 artifact_or_commit: candidate revision, or the artifact path
 files: the actual changed-path set
@@ -82,8 +98,8 @@ checks_run:
   - command: the exact command
     exit_code: integer or null
     collected: count, or not_applicable
-    outcomes: passed / failed / skipped / xfail / xpass / error
-observed_output: bounded excerpt of what the command actually printed
+    outcome: passed | failed | skipped | error | unknown
+observed_output: bounded excerpt of the most important command output
 facts: what was directly observed
 inferences: what was concluded but not directly observed, and why
 uncertainties: known gaps, residual risk, and suggested follow-up
@@ -119,41 +135,59 @@ and the run stopped at the human decision with the candidate unmerged.
 
 The Contract and Receipt below follow the same shape as that run. Values are illustrative.
 
-```yaml
-# Task Contract (filled)
-intent: make the label normalizer collapse whitespace so callers get a single-line label
-acceptance: the repository test command passes on the candidate revision
-out_of_scope: any change to tests, configuration, or callers
-repository: <absolute path to the target repository>
-base_sha: <frozen base revision>
-allowed_paths:
-  - src/normalizer.py
-capabilities:
-  read: the repository worktree
-  write: src/normalizer.py only
-  exec: the repository test command
-  network: denied
-  external_tool: deny
-evidence_required: candidate revision, diff, test command output and exit status
-escalate_when: the fix needs a second file, a new dependency, or network access
-human_merge_only: true
+```json
+{
+  "schema_version": 1,
+  "intent": "keep the evidence validation profile deterministic and bounded for local checks",
+  "base_sha": "9f89350b7385fb17c4a8991acfca3accb8d3070c",
+  "allowed_paths": [
+    "README.md",
+    "tools/validate_evidence.py",
+    "docs/WORKFLOW.md"
+  ],
+  "evidence_required": [
+    "candidate revision",
+    "check evidence",
+    "tests run"
+  ],
+  "minimum_total_collected": 1,
+  "human_merge_only": true
+}
 ```
 
-```yaml
-# Result Receipt (filled)
-outcome: succeeded
-artifact_or_commit: <candidate revision>
-files:
-  - src/normalizer.py
-checks_run:
-  - command: <the repository test command, exactly as documented>
-    exit_code: 0
-    collected: 3
-    outcomes: passed
-observed_output: three tests reported ok, run summary printed, process exited 0
-facts: the candidate changes one allowed file; the test command ran in the candidate worktree and exited 0
-inferences: the change satisfies the stated acceptance because the documented command passed on the
-  reviewed revision
-uncertainties: the tests exercise one function only; no load, integration, or concurrency evidence;
-  merge is a human decision that has not been made
+```json
+{
+  "schema_version": 1,
+  "outcome": "succeeded",
+  "artifact_or_commit": "0000000000000000000000000000000000000000",
+  "files": [
+    "README.md",
+    "tools/validate_evidence.py",
+    "docs/WORKFLOW.md"
+  ],
+  "checks_run": [
+    {
+      "command": "python3 tools/validate_evidence.py --contract examples/task-contract.json --receipt examples/result-receipt.json",
+      "exit_code": 0,
+      "collected": 1,
+      "outcome": "passed"
+    },
+    {
+      "command": "python3 -m unittest discover -s tests -v",
+      "exit_code": 0,
+      "collected": 1,
+      "outcome": "passed"
+    }
+  ],
+  "observed_output": "validator and tests reports passed",
+  "facts": [
+    "validator and tests run"
+  ],
+  "inferences": [
+    "both inputs satisfied required shape"
+  ],
+  "uncertainties": [
+    "no run evidence beyond this validator input pair"
+  ]
+}
 ```

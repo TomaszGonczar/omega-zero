@@ -4,6 +4,10 @@ Omega Zero is a small operating profile for AI-assisted development on top of Or
 holds authority, how bounded work is specified, what evidence a result must carry, and where the
 work stops for a human decision. It is a set of rules and templates — not a runtime.
 
+An optional reference validator now lives at `tools/validate_evidence.py` for local JSON sanity checks.
+It validates Task Contracts and Result Receipts against the profile requirements only and prints a
+deterministic report. This is a local script for validation only, not an installed agent CLI or runtime.
+
 Orca supplies the control and workspace plane: durable Run/Task/Dispatch identity, worker process
 lifecycle, terminal and worktree placement, messages, and settlement. Omega Zero supplies the human
 contract around that machinery: one semantic Principal, bounded worker tasks, independent review of
@@ -19,7 +23,7 @@ the exact candidate, and evidence-before-completion.
 | `README.md` | Purpose, quick use, and honest limits |
 | `.gitignore` | Local-only files |
 
-No package, CLI, service, database, scheduler, dashboard, or CI pipeline lives here. The profile is
+No package, runtime CLI, service, database, scheduler, dashboard, or CI pipeline lives here. The profile is
 Markdown; the consuming repository owns its code, checks, and integration.
 
 ## Quick use
@@ -33,6 +37,8 @@ Markdown; the consuming repository owns its code, checks, and integration.
    exact candidate is reviewed by an independent Reviewer → Git, checks, and receipts are
    reconciled.
 5. Stop at the human decision. Integration and merge are human acts.
+6. Optionally run:
+   `python3 tools/validate_evidence.py --contract examples/task-contract.json --receipt examples/result-receipt.json`
 
 ## Status
 
@@ -47,6 +53,9 @@ Honest status, as of this profile revision:
 - No semantic-correctness claim: checks and reviews bound behavior and evidence, not meaning.
 - No containment claim: nothing here isolates untrusted execution.
 - No scaling claim: one Builder and one Reviewer is the default, and parallel mutation is untested.
+- The validator is a reference-only gate and does not execute commands, inspect Git/Orca state,
+  run through any agent CLI automation path, access networks, read any declared evidence paths,
+  judge truth, request approval, or perform merges.
 
 ## Limits
 

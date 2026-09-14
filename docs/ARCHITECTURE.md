@@ -91,6 +91,14 @@ untrusted execution. OS or container containment is optional and is added only w
 requires enforcement. A regex gate may add friction; it is not containment. Claims about isolation
 must match the mechanism actually present.
 
+## Reference validation tool
+
+`tools/validate_evidence.py` is an optional reference validator for contract and receipt JSON.
+It validates schema shape, declared path sets, and declared evidence collection counts only.
+It does not execute commands, run through an agent CLI, inspect Git or Orca state, run tests, read any
+path declared inside inputs, access the network, install dependencies, judge truth, ask for approvals,
+or merge commits.
+
 ## Evidence boundary
 
 What the rehearsal exercised and observed, with limitations: the loop runs — contract, dispatch,

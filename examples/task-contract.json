@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "intent": "Keep the evidence validation profile deterministic and bounded for local checks.",
+  "base_sha": "9f89350b7385fb17c4a8991acfca3accb8d3070c",
+  "allowed_paths": [
+    "README.md",
+    "tools/validate_evidence.py",
+    "docs/WORKFLOW.md"
+  ],
+  "evidence_required": [
+    "candidate revision",
+    "check evidence",
+    "tests run"
+  ],
+  "minimum_total_collected": 1,
+  "human_merge_only": true
+}

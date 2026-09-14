@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "intent": "Fail when required evidence total is below contract minimum.",
+  "base_sha": "9f89350b7385fb17c4a8991acfca3accb8d3070c",
+  "allowed_paths": [
+    "tools/validate_evidence.py",
+    "tests/test_validate_evidence.py"
+  ],
+  "evidence_required": [
+    "candidate revision",
+    "check evidence"
+  ],
+  "minimum_total_collected": 3,
+  "human_merge_only": true
+}

@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "outcome": "succeeded",
+  "artifact_or_commit": "0000000000000000000000000000000000000000",
+  "files": [
+    "README.md",
+    "tools/validate_evidence.py",
+    "docs/WORKFLOW.md"
+  ],
+  "checks_run": [
+    {
+      "command": "python3 tools/validate_evidence.py --contract examples/task-contract.json --receipt examples/result-receipt.json",
+      "exit_code": 0,
+      "collected": 1,
+      "outcome": "passed"
+    },
+    {
+      "command": "python3 -m unittest discover -s tests -v",
+      "exit_code": 0,
+      "collected": 1,
+      "outcome": "passed"
+    }
+  ],
+  "facts": ["validator and tests run"],
+  "inferences": ["both inputs satisfied required shape"],
+  "uncertainties": ["no run evidence beyond this validator input pair"]
+}

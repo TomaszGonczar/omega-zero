@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "outcome": "failed",
+  "artifact_or_commit": "badfixture0000000000000000000000000000",
+  "files": [
+    "tools/validate_evidence.py",
+    "tests/test_validate_evidence.py"
+  ],
+  "checks_run": [
+    {
+      "command": "python3 tools/validate_evidence.py --contract tests/fixtures/zero-collected/task-contract.json --receipt tests/fixtures/zero-collected/result-receipt.json",
+      "exit_code": 1,
+      "collected": 1,
+      "outcome": "failed"
+    },
+    {
+      "command": "python3 -m unittest discover -s tests -v",
+      "exit_code": 0,
+      "collected": 0,
+      "outcome": "passed"
+    }
+  ],
+  "facts": ["minimum is above collected total"],
+  "inferences": ["validator should reject this receipt"],
+  "uncertainties": ["no external check execution was performed"]
+}
