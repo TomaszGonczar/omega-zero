@@ -11,3 +11,7 @@ Thumbs.db
 # Python scratch, if a local check script is ever run by hand
 __pycache__/
 *.py[co]
+
+# Local session handoffs and coordinator logs
+HANDOFF.md
+
