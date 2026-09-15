@@ -1,0 +1,20 @@
+name: Evidence or Architecture Inquiry
+description: Ask a question about the Omega Zero profile, Orca integration, or evidence model
+labels: ["question", "documentation"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template to inquire about the authority model, Orca mechanics, or evidence contracts.
+  - type: textarea
+    id: topic
+    attributes:
+      label: Inquiry or Discussion Topic
+      description: What architectural concept or evidence boundary would you like to clarify?
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context & Target Environment
+      description: How are you considering applying the Omega Zero operating profile?

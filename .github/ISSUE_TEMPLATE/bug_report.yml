@@ -1,0 +1,39 @@
+name: Bug Report
+description: Report a defect, schema bypass, or inconsistency in Omega Zero
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug! Please follow our evidence-driven approach by providing exact reproduction commands.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Defect Summary
+      description: What unexpected behavior or bypass did you observe?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Exact Reproduction Steps
+      description: Provide the exact commands, input payloads, or scripts run.
+      placeholder: |
+        1. Run `python3 tools/validate_evidence.py ...`
+        2. Inspect output
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected vs. Actual Output
+      description: What did the validator or test suite output vs what the contract specifies?
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Python & OS Environment
+      placeholder: "Python 3.12 on macOS Sonoma"
+    validations:
+      required: true
