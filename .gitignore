@@ -7,11 +7,28 @@ Thumbs.db
 # Editor and shell scratch
 *~
 *.swp
+*.tmp
+*.bak
 
-# Python scratch, if a local check script is ever run by hand
+# Python scratch and caches
 __pycache__/
 *.py[co]
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Build and package artifacts
+build/
+dist/
+*.egg-info/
+node_modules/
+
+# Secrets and environment
+.env
+.env.*
+!.env.example
+credentials.json
 
 # Local session handoffs and coordinator logs
 HANDOFF.md
-
