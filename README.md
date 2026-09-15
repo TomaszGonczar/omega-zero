@@ -6,7 +6,8 @@ work stops for a human decision. It is a set of rules and templates — not a ru
 
 In its first real run this profile produced the reference validator; independent review then found a
 schema-version bypass on a candidate whose tests were green, the defect was fixed and locally
-integrated, and hosted CI and public release remain unproven.
+integrated, and hosted CI across Python 3.11–3.13 on GitHub Actions has now been verified.
+
 
 An optional reference validator now lives at `tools/validate_evidence.py` for local JSON sanity checks.
 It validates Task Contracts and Result Receipts against the profile requirements only and prints a
@@ -60,10 +61,12 @@ support claim. This repository declares and installs no project dependencies bec
 the validator use only the standard library — but the workflow is not self-contained: the checkout and
 setup steps run on GitHub-hosted infrastructure, `setup-python` provisions an interpreter, and the run
 therefore depends on that infrastructure and cannot be described as network-free or install-free. What
-was executed locally is the repository-owned run scripts — the unittest, validator, and guard commands
-the workflow invokes. The workflow itself was not run: `actions/checkout`, `actions/setup-python`, and
-GitHub-hosted runner behavior were not executed or observed locally, and no hosted run has produced a
-result.
+was originally executed locally was the repository-owned run scripts — the unittest, validator, and
+guard commands the workflow invokes. Following public release, the GitHub Actions workflow was
+executed on hosted runners (`ubuntu-latest`, Python 3.11, 3.12, 3.13) under run ID `34937827742`,
+verifying that runner checkout, Python provisioning, matrix execution, and all check steps succeed as
+declared.
+
 
 ## Quick use
 
@@ -103,8 +106,10 @@ Honest status, as of this profile revision:
   strict integer guard and two non-vacuous regression tests, and the corrected revision was reviewed
   again as acceptable.
 - The human then locally integrated the exact reviewed revision. Local `main` equals that revision.
-- No remote exists, nothing has been pushed, and nothing has been published. Public release is not
-  proven, attempted, or authorized.
+- The repository is published at `https://github.com/TomaszGonczar/omega-zero` under the MIT license.
+  Hosted continuous integration on GitHub Actions has been verified across Python 3.11, 3.12, and
+  3.13 (run ID `34937827742`).
+
 - The run's evidence is point-in-time. The files in `evidence/first-real-run/` are sanitized public
   derivatives of the run's local records, not the verbatim originals; the private originals remain
   outside this package. The derivative Result Receipt preserves the original temporal fact — the
