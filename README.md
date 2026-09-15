@@ -8,10 +8,9 @@
 <p align="center">
   <a href="#-two-things-in-one-repo">Overview</a> &middot;
   <a href="#-why-omega-zero">Why Omega Zero</a> &middot;
-  <a href="#-independent-candidate-review--the-rigor-no-other-framework-enforces">Reviewer Rigor</a> &middot;
+  <a href="#-independent-candidate-review">Reviewer Rigor</a> &middot;
   <a href="#-case-study-when-green-tests-lie">Case Study</a> &middot;
   <a href="#-quickstart--verification">Quickstart</a> &middot;
-  <a href="#-comparison">Comparison</a> &middot;
   <a href="docs/ARCHITECTURE.md">Architecture</a>
 </p>
 
@@ -36,9 +35,7 @@ Both are designed for **Orca**, work with **any model** (Claude, GPT, Gemini, lo
 
 ---
 
-## 🛡️ Independent Candidate Review — the rigor no other framework enforces
-
-LangGraph can't do this. CrewAI can't. AutoGen and Claude Code don't. **It is the core reason to adopt Omega Zero.**
+## 🛡️ Independent Candidate Review
 
 Most agent architectures suffer from a critical failure mode: **the agent that writes the code evaluates its own work** (or reviews its own conversational chain-of-thought). When an agent self-evaluates, it confirms its own hallucinations, repeats prompt biases, and easily passes self-generated, vacuous tests.
 
@@ -62,23 +59,6 @@ Omega Zero breaks this loop with **air-gapped candidate review**:
 1. **Context Quarantine**: The Reviewer receives *only* the raw unified diff (`git diff`) and the immutable base commit SHA. Builder scratchpads, prompt traces, and conversational tokens are strictly quarantined to eliminate confirmation bias.
 2. **Passive Data Treatment**: Candidate source files and commit messages are evaluated strictly as passive data, disarming embedded prompt injections.
 3. **Deterministic Grounding**: The Reviewer independently executes target repository commands on a clean checkout, capturing raw exit codes and stdout.
-
----
-
-## 🆚 Comparison
-
-| Feature | **Omega Zero** | LangGraph | CrewAI | AutoGen | Claude Code / Aider |
-|---|:---:|:---:|:---:|:---:|:---:|
-| **Deterministic Task Contracts** (frozen SHA, path bounds) | ✅ | — | — | — | ~ |
-| **Independent Reviewer with Context Quarantine** | ✅ | — | — | — | — |
-| **Single Bounded Writer in Isolated Worktree** | ✅ | ~ | ~ | ~ | ~ |
-| **Deterministic JSON Evidence Receipts** | ✅ | — | — | — | — |
-| **Standard-Library Validator** (<10ms, zero pip) | ✅ | — | — | — | — |
-| **Exclusive Human-Only Merge Gate** | ✅ | ~ | ~ | ~ | ✅ |
-| **Layered Containment Model** (Contract / Worktree / OS) | ✅ | DIY | DIY | DIY | ~ |
-| **Tested Against Python Type Coercion Bypasses** | ✅ | — | — | — | — |
-
-<sub>✅ first-class · ~ partial / requires custom wiring · — not supported by design.</sub>
 
 ---
 
