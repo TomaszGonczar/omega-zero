@@ -1,8 +1,17 @@
 <h1 align="center">Omega Zero</h1>
 
 <p align="center">
+  <b>The Deterministic AI Systems Suite</b><br>
+  <a href="https://github.com/TomaszGonczar/dCompress"><b>dCompress</b></a> (Fact Memory) &middot;
+  <a href="https://github.com/TomaszGonczar/dsearch"><b>dsearch</b></a> (Retrieval Grounding) &middot;
+  <a href="https://github.com/TomaszGonczar/dproof"><b>dproof</b></a> (State Evidence) &middot;
+  <a href="https://github.com/TomaszGonczar/omega-zero"><b>omega-zero</b></a> (Governance) &middot;
+  <a href="https://github.com/TomaszGonczar/hackathon-multi-ai-blueprint"><b>hackathon-blueprint</b></a> (Operations)
+</p>
+
+<p align="center">
   <b>Deterministic Multi-Agent Governance Protocol & Evidence Verification.</b><br>
-  The operating profile for AI-assisted engineering on Orca — bounded authority, task contracts, independent review with context quarantine, and deterministic proof receipts before human merge.
+  An open operating profile for multi-agent software engineering — bounded authority, task contracts, independent review with context quarantine, and deterministic proof receipts before human merge.
 </p>
 
 <p align="center">
@@ -31,7 +40,7 @@
 
 🧪 **A deterministic reference validator** — a pure Python standard-library verification engine ([`tools/validate_evidence.py`](tools/validate_evidence.py)) that enforces proof-of-claim receipts, zero-collected negative fixtures, 2 MiB DoS bounds, and canonical path containment in sub-10ms with zero pip bootstrapping.
 
-Both are designed for **Orca**, work with **any model** (Claude, GPT, Gemini, local), and guarantee that probabilistic LLMs cannot sneak unverified code past your human merge gate.
+Works with any orchestrator (Orca, Claude Code, Cursor, Aider, custom agent swarms), works with **any model** (Claude, GPT, Gemini, local), and guarantees that probabilistic LLMs cannot sneak unverified code past your human merge gate.
 
 ---
 
@@ -41,19 +50,24 @@ Most agent architectures suffer from a critical failure mode: **the agent that w
 
 Omega Zero breaks this loop with **air-gapped candidate review**:
 
-```
-                              ┌──  Builder in Worktree A  ── writes code strictly in allowed_paths
-   Task Contract (frozen SHA) ─┼──  Candidate Git Diff     ── base_sha..candidate_sha
-                               └──  Context Quarantine      ── Builder scratchpads & reasoning BLOCKED
-                                             │
-                                             ▼
-                             🛡️  Independent Reviewer in Worktree B
-                                 (evaluates candidate as untrusted data,
-                                  reruns checks, reports severity-ranked findings)
-                                             │
-                                             ▼
-                                 ⚖️  Human Decision Gate
-                                     (human reviews evidence receipt & merges)
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Human as 👤 Human Principal
+    participant Builder as 🛠️ Builder (Worktree A)
+    participant Quarantine as 🧱 Context Quarantine
+    participant Reviewer as 🛡️ Reviewer (Worktree B)
+    participant Validator as 🧪 Reference Validator
+
+    Human->>Builder: Task Contract (frozen base SHA, allowed paths)
+    Note over Builder: Mutates code & passes local tests
+    Builder->>Quarantine: Raw Git Patch (base_sha..candidate_sha)
+    Note over Quarantine: Blocks Builder prompts & reasoning traces
+    Quarantine->>Reviewer: Clean Diff + Verification Commands
+    Note over Reviewer: Independent execution on clean checkout
+    Reviewer->>Validator: Result Receipt (exit codes, counts, findings)
+    Validator->>Human: Validated Evidence Package
+    Note over Human: Exclusive Merge Authority
 ```
 
 1. **Context Quarantine**: The Reviewer receives *only* the raw unified diff (`git diff`) and the immutable base commit SHA. Builder scratchpads, prompt traces, and conversational tokens are strictly quarantined to eliminate confirmation bias.
@@ -66,7 +80,16 @@ Omega Zero breaks this loop with **air-gapped candidate review**:
 
 In this repository's initial end-to-end run, the Builder worker implemented the reference validator. The candidate's unit test suite passed with **100% green status**.
 
-However, the **Independent Reviewer** analyzed the exact revision and caught a critical schema-version bypass: in Python, `bool` subclasses `int` and `True == 1`. The candidate accepted boolean `true` and float `1.0` where integer `schema_version: 1` was strictly required by the contract.
+However, the **Independent Reviewer** analyzed the exact revision and caught a critical schema-version bypass: in Python, `bool` subclasses `int` and `True == 1`. The candidate accepted boolean `true` and float `1.0` where integer `schema_version: 1` was strictly required by the contract:
+
+```python
+# ❌ Candidate Defect (100% Green Unit Tests, but Contract Violated):
+payload = {"schema_version": True}  # in Python: isinstance(True, int) is True!
+
+# ✅ Guard Enforced by Independent Reviewer:
+if not (isinstance(val, int) and not isinstance(val, bool)):
+    raise ValidationError("schema_version must be integer, not bool")
+```
 
 Because Omega Zero mandates **independent candidate review** and **evidence-before-completion**:
 - The defect was reproduced and reported as a P2 finding.
