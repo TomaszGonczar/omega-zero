@@ -275,6 +275,34 @@ class ValidateEvidenceTests(unittest.TestCase):
             self.assertNotEqual(proc.returncode, 0)
             self.assertLessEqual(len(proc.stdout.encode("utf-8")), 4096)
 
+    def test_null_byte_in_path(self):
+        contract = read_json(VALID_CONTRACT)
+        contract["allowed_paths"] = ["README.md\0"]
+
+        with tempfile.TemporaryDirectory() as td:
+            contract_path = Path(td) / "task-contract.json"
+            receipt_path = Path(td) / "result-receipt.json"
+            write_json(contract_path, contract)
+            write_json(receipt_path, read_json(VALID_RECEIPT))
+
+            proc = run_with_payload(contract_path, receipt_path)
+            payload = parse_output(proc)
+
+        self.assertNotEqual(proc.returncode, 0)
+        self.assertIn("INVALID_CONTRACT", payload["errors"])
+
+    def test_input_limit_exceeded(self):
+        with tempfile.NamedTemporaryFile("w+", suffix=".json", delete=False) as large_file:
+            large_file.write('{"data": "' + "x" * (2 * 1024 * 1024 + 64) + '"}')
+            large_path = Path(large_file.name)
+
+        proc = run_with_payload(large_path, VALID_RECEIPT)
+        payload = parse_output(proc)
+
+        self.assertNotEqual(proc.returncode, 0)
+        self.assertIn("INPUT_LIMIT_EXCEEDED", payload["errors"])
+
 
 if __name__ == "__main__":
     unittest.main()
+

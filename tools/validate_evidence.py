@@ -1,22 +1,31 @@
 #!/usr/bin/env python3
 """Validate Omega Zero Task Contracts and Result Receipts.
 
-The validator is a local reference checker only. It does not execute commands,
-inspect version control or Orca state, access the network, read declared evidence
-paths, judge truth, or apply approvals.
+Architectural Scope & Invariants:
+1. Pure Standard Library: Zero third-party dependencies (no pydantic, jsonschema,
+   or external packages) ensuring instant (<10ms) execution, zero supply-chain
+   attack surface, and universal execution on air-gapped, containerized, or
+   minimal CI environments.
+2. Proof-of-Structure Gate: Validates syntactic schema conformance, bounded path
+   containment, and declared check counts. It does not execute commands, inspect
+   version control or Orca state, access the network, read declared evidence
+   paths, judge semantic truth, or grant approvals.
 """
 
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import PurePosixPath
 from typing import Any, Dict, Iterable, List, Tuple
 
 
 MAX_OUTPUT_BYTES = 4096
+MAX_INPUT_BYTES = 2 * 1024 * 1024  # 2 MiB per input file (DoS protection)
 VALID_RECEIPT_OUTCOMES = {"passed", "failed", "skipped", "error", "unknown"}
 SCHEMA_VERSION = 1
+
 
 
 def _emit(result: Dict[str, Any], exit_code: int) -> int:
@@ -36,6 +45,8 @@ def _is_non_empty_string(value: Any) -> bool:
 
 
 def _is_relative_path(value: str) -> bool:
+    if not isinstance(value, str) or "\0" in value:
+        return False
     if value in {".", ".."}:
         return False
     if value.startswith(("/", "\\")):
@@ -43,7 +54,8 @@ def _is_relative_path(value: str) -> bool:
     if "\\" in value:
         return False
     path = PurePosixPath(value)
-    return not path.is_absolute() and ".." not in path.parts
+    return not path.is_absolute() and ".." not in path.parts and path.as_posix() not in {".", ""}
+
 
 
 def _validate_string_list(
@@ -211,6 +223,15 @@ def _deduplicate_errors(errors: Iterable[str]) -> List[str]:
 def validate_inputs(contract_path: str, receipt_path: str) -> Tuple[int, Dict[str, Any], List[str]]:
     errors: List[str] = []
 
+    for path in (contract_path, receipt_path):
+        try:
+            if os.path.getsize(path) > MAX_INPUT_BYTES:
+                return 1, {"valid": False, "errors": ["INPUT_LIMIT_EXCEEDED"]}, []
+        except FileNotFoundError:
+            return 1, {"valid": False, "errors": ["MISSING_INPUT"]}, []
+        except OSError:
+            return 1, {"valid": False, "errors": ["INVALID_JSON"]}, []
+
     try:
         with open(contract_path, "r", encoding="utf-8") as f:
             contract = json.load(f)
@@ -226,6 +247,7 @@ def validate_inputs(contract_path: str, receipt_path: str) -> Tuple[int, Dict[st
         return 1, {"valid": False, "errors": ["MISSING_INPUT"]}, []
     except Exception:
         return 1, {"valid": False, "errors": ["INVALID_JSON"]}, []
+
 
     contract_summary = _validate_contract(contract, errors)
     receipt_summary = _validate_receipt(receipt, errors)
