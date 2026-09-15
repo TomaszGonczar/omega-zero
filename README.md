@@ -1,35 +1,139 @@
-# Omega Zero
+<h1 align="center">Omega Zero</h1>
 
-> **An operating profile & deterministic evidence protocol for multi-agent software engineering on Orca.**  
-> Enforces bounded authority, strict task contracts, independent candidate review, and deterministic evidence receipts before any human merge gate.
+<p align="center">
+  <b>Deterministic Multi-Agent Governance Protocol & Evidence Verification.</b><br>
+  The operating profile for AI-assisted engineering on Orca — bounded authority, task contracts, independent review with context quarantine, and deterministic proof receipts before human merge.
+</p>
 
-[![CI](https://github.com/TomaszGonczar/omega-zero/actions/workflows/ci.yml/badge.svg)](https://github.com/TomaszGonczar/omega-zero/actions/workflows/ci.yml)
-[![Release](https://img.shields.io/github/v/release/TomaszGonczar/omega-zero?color=blue)](https://github.com/TomaszGonczar/omega-zero/releases)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-[![Python: 3.11 | 3.12 | 3.13](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/)
-[![Standard Library Only](https://img.shields.io/badge/dependencies-standard%20library%20only-555555.svg)](#)
+<p align="center">
+  <a href="#-two-things-in-one-repo">Overview</a> &middot;
+  <a href="#-why-omega-zero">Why Omega Zero</a> &middot;
+  <a href="#-independent-candidate-review--the-rigor-no-other-framework-enforces">Reviewer Rigor</a> &middot;
+  <a href="#-case-study-when-green-tests-lie">Case Study</a> &middot;
+  <a href="#-quickstart--verification">Quickstart</a> &middot;
+  <a href="#-comparison">Comparison</a> &middot;
+  <a href="docs/ARCHITECTURE.md">Architecture</a>
+</p>
 
----
-
-## Why Omega Zero?
-
-LLM coding agents are probabilistic; production software engineering requires deterministic consistency. When agents operate without strict governance:
-- Agents issue completion claims that are speculative or unverified.
-- Passing unit test suites frequently mask specification bypasses or schema drift.
-- Unbounded writes spill into unauthorized files.
-- Agent self-reviews suffer from severe confirmation bias and prompt injection leakage.
-
-**Omega Zero** establishes a clean, human-governed operating profile around agent machinery:
-1. **Single Human Authority**: The only entity authorized to set intent, accept risk, and perform merges.
-2. **Semantic Principal**: Translates human intent into an immutable **Task Contract** (frozen base revision, allowed path boundaries, observable acceptance checks).
-3. **Orca Control Plane**: Manages isolated Git worktrees, terminal processes, and durable lifecycle state.
-4. **Single Bounded Writer**: One Builder agent per dispatch, isolated in its own worktree and restricted to declared paths.
-5. **Independent Candidate Review & Context Quarantine**: An isolated Reviewer agent inspects the exact Git diff directly. The Reviewer is never fed the Builder's scratchpads or internal chains-of-thought, preventing confirmation bias and prompt injection leakage.
-6. **Deterministic Evidence Receipts**: Structured JSON receipts carrying command executions, exit codes, and declared facts, validated by a standard-library reference validator.
+<p align="center">
+  <a href="https://github.com/TomaszGonczar/omega-zero/actions/workflows/ci.yml"><img src="https://github.com/TomaszGonczar/omega-zero/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/TomaszGonczar/omega-zero/releases"><img src="https://img.shields.io/github/v/release/TomaszGonczar/omega-zero?color=blue" alt="Release"></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
+  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-3776AB.svg?logo=python&logoColor=white" alt="Python 3.11+"></a>
+  <a href="#"><img src="https://img.shields.io/badge/dependencies-standard%20library%20only-brightgreen.svg" alt="Dependencies: None"></a>
+  <a href="SECURITY.md"><img src="https://img.shields.io/badge/security-policy-blueviolet?logo=shieldsdotio&logoColor=white" alt="Security Policy"></a>
+</p>
 
 ---
 
-## Runtime Architecture
+## 📦 Two things in one repo
+
+📋 **An operating governance profile** — an authoritative contract that separates concerns: one semantic Principal, bounded worker tasks in isolated Git worktrees, independent review of the exact candidate, and human-only merge authority.
+
+🧪 **A deterministic reference validator** — a pure Python standard-library verification engine ([`tools/validate_evidence.py`](tools/validate_evidence.py)) that enforces proof-of-claim receipts, zero-collected negative fixtures, 2 MiB DoS bounds, and canonical path containment in sub-10ms with zero pip bootstrapping.
+
+Both are designed for **Orca**, work with **any model** (Claude, GPT, Gemini, local), and guarantee that probabilistic LLMs cannot sneak unverified code past your human merge gate.
+
+---
+
+## 🛡️ Independent Candidate Review — the rigor no other framework enforces
+
+LangGraph can't do this. CrewAI can't. AutoGen and Claude Code don't. **It is the core reason to adopt Omega Zero.**
+
+Most agent architectures suffer from a critical failure mode: **the agent that writes the code evaluates its own work** (or reviews its own conversational chain-of-thought). When an agent self-evaluates, it confirms its own hallucinations, repeats prompt biases, and easily passes self-generated, vacuous tests.
+
+Omega Zero breaks this loop with **air-gapped candidate review**:
+
+```
+                              ┌──  Builder in Worktree A  ── writes code strictly in allowed_paths
+   Task Contract (frozen SHA) ─┼──  Candidate Git Diff     ── base_sha..candidate_sha
+                               └──  Context Quarantine      ── Builder scratchpads & reasoning BLOCKED
+                                             │
+                                             ▼
+                             🛡️  Independent Reviewer in Worktree B
+                                 (evaluates candidate as untrusted data,
+                                  reruns checks, reports severity-ranked findings)
+                                             │
+                                             ▼
+                                 ⚖️  Human Decision Gate
+                                     (human reviews evidence receipt & merges)
+```
+
+1. **Context Quarantine**: The Reviewer receives *only* the raw unified diff (`git diff`) and the immutable base commit SHA. Builder scratchpads, prompt traces, and conversational tokens are strictly quarantined to eliminate confirmation bias.
+2. **Passive Data Treatment**: Candidate source files and commit messages are evaluated strictly as passive data, disarming embedded prompt injections.
+3. **Deterministic Grounding**: The Reviewer independently executes target repository commands on a clean checkout, capturing raw exit codes and stdout.
+
+---
+
+## 🆚 Comparison
+
+| Feature | **Omega Zero** | LangGraph | CrewAI | AutoGen | Claude Code / Aider |
+|---|:---:|:---:|:---:|:---:|:---:|
+| **Deterministic Task Contracts** (frozen SHA, path bounds) | ✅ | — | — | — | ~ |
+| **Independent Reviewer with Context Quarantine** | ✅ | — | — | — | — |
+| **Single Bounded Writer in Isolated Worktree** | ✅ | ~ | ~ | ~ | ~ |
+| **Deterministic JSON Evidence Receipts** | ✅ | — | — | — | — |
+| **Standard-Library Validator** (<10ms, zero pip) | ✅ | — | — | — | — |
+| **Exclusive Human-Only Merge Gate** | ✅ | ~ | ~ | ~ | ✅ |
+| **Layered Containment Model** (Contract / Worktree / OS) | ✅ | DIY | DIY | DIY | ~ |
+| **Tested Against Python Type Coercion Bypasses** | ✅ | — | — | — | — |
+
+<sub>✅ first-class · ~ partial / requires custom wiring · — not supported by design.</sub>
+
+---
+
+## 🔍 Case Study: When Green Tests Lie
+
+In this repository's initial end-to-end run, the Builder worker implemented the reference validator. The candidate's unit test suite passed with **100% green status**.
+
+However, the **Independent Reviewer** analyzed the exact revision and caught a critical schema-version bypass: in Python, `bool` subclasses `int` and `True == 1`. The candidate accepted boolean `true` and float `1.0` where integer `schema_version: 1` was strictly required by the contract.
+
+Because Omega Zero mandates **independent candidate review** and **evidence-before-completion**:
+- The defect was reproduced and reported as a P2 finding.
+- The candidate was rejected.
+- A strict integer guard (`isinstance(v, int) and not isinstance(v, bool)`) and regression tests were added.
+- The corrected candidate was re-reviewed and accepted by the human principal.
+
+Read the full incident breakdown in [`docs/CASE_STUDY.md`](docs/CASE_STUDY.md).
+
+---
+
+## 🚀 Two ways to use it
+
+### 1. In Your Local Repo / Agent Workflow
+Use the operating contract in [`AGENTS.md`](AGENTS.md) and contract templates in [`docs/WORKFLOW.md`](docs/WORKFLOW.md) to govern your coding agents:
+1. Formulate a **Task Contract** from your current base commit with strict `allowed_paths`.
+2. Dispatch a Builder into a clean Git worktree.
+3. Dispatch an Independent Reviewer to test the exact diff in a separate worktree.
+4. Collect the **Result Receipt** and validate it before merging.
+
+### 2. In Continuous Integration (CI Gate)
+Integrate the reference validator directly into your CI pipeline as a zero-dependency pre-merge gate:
+
+```bash
+python3 tools/validate_evidence.py \
+  --contract examples/task-contract.json \
+  --receipt examples/result-receipt.json
+```
+Output:
+```json
+{"error_count": 0, "errors": [], "valid": true}
+```
+
+Negative fixtures intentionally exit 1 with explicit error codes:
+```bash
+python3 tools/validate_evidence.py \
+  --contract tests/fixtures/zero-collected/task-contract.json \
+  --receipt tests/fixtures/zero-collected/result-receipt.json
+```
+Output:
+```json
+{"error_count": 1, "errors": ["ZERO_COLLECTED"], "valid": false}
+```
+
+---
+
+## 🏛️ Runtime Architecture
 
 ```mermaid
 flowchart TB
@@ -62,11 +166,7 @@ flowchart TB
     X -.-> R
 ```
 
-*For detailed sequence specifications, state lifecycles, and threat boundaries, see [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).*
-
----
-
-## Authority Matrix
+### Authority Matrix
 
 | Concern | Authority | Explicit Non-Authority |
 |---|---|---|
@@ -81,7 +181,7 @@ flowchart TB
 
 ---
 
-## Layered Threat & Containment Model
+## 🛡️ Layered Threat & Containment Model
 
 Omega Zero explicitly separates contractual coordination from system security:
 
@@ -94,111 +194,27 @@ Omega Zero explicitly separates contractual coordination from system security:
 
 ---
 
-## Case Study: Green Tests vs. Ground Truth
+## ⚡ Quickstart & Verification
 
-In this repository's initial end-to-end run, the Builder worker implemented the reference validator. The candidate's unit test suite passed with 100% green status.
-
-However, independent review analyzed the exact revision and discovered a critical schema-version bypass: in Python, `bool` is a subclass of `int` and `True == 1`. The candidate accepted boolean `true` and float `1.0` where integer `schema_version: 1` was strictly required by the contract.
-
-Because Omega Zero mandates **independent candidate review** and **evidence-before-completion**:
-- The defect was reproduced and reported.
-- The candidate was rejected.
-- A strict integer guard and non-vacuous regression tests were added.
-- The corrected candidate was re-reviewed and accepted by the human principal.
-
-Read the complete incident breakdown in [`docs/CASE_STUDY.md`](docs/CASE_STUDY.md).
-
----
-
-## Deterministic Reference Validator
-
-The profile provides a reference validator at [`tools/validate_evidence.py`](tools/validate_evidence.py). 
-
-### Architectural Design Decisions:
-* **Zero External Dependencies (Standard Library Only)**: Deliberately written without `pydantic` or `jsonschema` to ensure instant (<10ms) execution, zero supply-chain attack surface, and seamless execution on air-gapped or minimal CI runners.
-* **Proof-of-Structure Gate**: Serves as a syntactic and structural proof-of-claim validator. In untrusted environments, it pairs with cryptographic execution provenance (e.g. process execution receipts and hash-chained terminal logs).
-* **DoS Hardening**: Enforces a 2 MiB input file limit and canonical relative POSIX path traversal guards.
+Run the full local verification suite in sub-second time:
 
 ```bash
-# Validate the committed examples
-python3 tools/validate_evidence.py \
-  --contract examples/task-contract.json \
-  --receipt examples/result-receipt.json
-```
-Output:
-```json
-{"error_count": 0, "errors": [], "valid": true}
-```
-
-Negative fixtures intentionally exit 1 with explicit error codes:
-```bash
-# Validate negative fixture (zero tests collected)
-python3 tools/validate_evidence.py \
-  --contract tests/fixtures/zero-collected/task-contract.json \
-  --receipt tests/fixtures/zero-collected/result-receipt.json
-```
-Output:
-```json
-{"error_count": 1, "errors": ["ZERO_COLLECTED"], "valid": false}
-```
-
----
-
-## Quickstart & Local Verification
-
-Run the full repository verification suite locally:
-
-```bash
-# 1. Run the unit test suite (19 tests)
+# 1. Run unit test suite (19 tests)
 python3 -m unittest discover -s tests -p 'test_*.py' -v
 
 # 2. Validate committed example contracts
 python3 tools/validate_evidence.py --contract examples/task-contract.json --receipt examples/result-receipt.json
 
-# 3. Validate the first-real-run evidence pair
+# 3. Validate first-real-run evidence
 python3 tools/validate_evidence.py --contract evidence/first-real-run/task-contract.json --receipt evidence/first-real-run/result-receipt.json
 
-# 4. Verify the negative failure fixture (must exit 1 with ZERO_COLLECTED)
+# 4. Verify negative fixture (must exit 1 with ZERO_COLLECTED)
 python3 tools/validate_evidence.py --contract tests/fixtures/zero-collected/task-contract.json --receipt tests/fixtures/zero-collected/result-receipt.json
 ```
 
 ---
 
-## Hosted Continuous Integration
-
-The GitHub Actions workflow ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs on `ubuntu-latest` across a matrix of Python **3.11**, **3.12**, and **3.13**.
-
-On every push and pull request, it deterministically checks:
-1. **Test Discovery Guard**: Fails with `ZERO_COLLECTED` if discovery finds 0 tests.
-2. **Standard-Library Suite**: Executes all 19 unit test cases.
-3. **Committed Evidence Validation**: Verifies both the example pair and the first-run evidence pair report `valid: true`.
-4. **Negative Fixture Guard**: Confirms that invalid fixtures exit code 1 and return expected error codes.
-
----
-
-## Runtime Portability & Ecosystem Integration
-
-While Orca serves as the reference control plane, Omega Zero is runtime-agnostic:
-- **Claude Code / Cursor / Aider**: Use Task Contracts as pre-task prompts and Result Receipts as completion gates.
-- **GitHub Actions / GitLab CI**: Enforce deterministic evidence validation before pull requests reach human review.
-- **LangGraph / Custom Agent Swarms**: Act as the formal boundary contract between supervisor planning nodes and worker tool executions.
-
----
-
-## Honest Status & Empirical Boundaries
-
-To uphold the core principle of empirical truthfulness:
-
-- **Exercised End-to-End**: Run `B1` produced the reference validator against this repository. Its full audit record is in [`evidence/first-real-run/`](evidence/first-real-run/).
-- **Independent Review Verified**: The schema bypass (`True == 1`) was caught by independent review, fixed, regression-tested, and locally integrated.
-- **Published & CI Verified**: The repository is published at [`TomaszGonczar/omega-zero`](https://github.com/TomaszGonczar/omega-zero) under the MIT license. Continuous integration has been verified on GitHub Actions across Python 3.11, 3.12, and 3.13 (Runs `#34937827742`, `#34937934764`, and `#34938608287`).
-- **No Auto-Merge**: Integration and merge authority remain exclusively human.
-- **No Containment Claim**: Git worktrees separate file system workspace state for cooperative agents; they do not provide sandboxed security isolation.
-- **No Scaling Claim**: One Builder and one Reviewer is the evaluated baseline; parallel mutations remain out of scope.
-
----
-
-## Repository Contents
+## 📋 Repository Map
 
 | Path | Purpose |
 |---|---|
@@ -216,6 +232,6 @@ To uphold the core principle of empirical truthfulness:
 
 ---
 
-## License
+## ⚖️ License
 
 This project is licensed under the [MIT License](LICENSE).
