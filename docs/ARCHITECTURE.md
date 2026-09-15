@@ -4,7 +4,7 @@
 
 Omega Zero is a lightweight, human-governed operating profile for AI-assisted software development. It defines who holds authority, how work is bounded, how evidence is collected, and where execution halts for human approval.
 
-Orca supplies coordination, process lifecycle, and workspace mechanics. Omega Zero supplies the contract around that machinery: **one semantic Principal, bounded worker tasks, independent review of the exact candidate, and deterministic evidence before completion.**
+The execution orchestrator (Orca, Claude Code, Cursor, Aider, or custom harness) supplies process lifecycle, dispatch, and workspace mechanics. Omega Zero supplies the contract around that machinery: **one semantic Principal, bounded worker tasks, independent review of the exact candidate, and deterministic evidence before completion.**
 
 ---
 

@@ -111,28 +111,14 @@ Use the operating contract in [`AGENTS.md`](AGENTS.md) and contract templates in
 4. Collect the **Result Receipt** and validate it before merging.
 
 ### 2. In Continuous Integration (CI Gate)
-Integrate the reference validator directly into your CI pipeline as a zero-dependency pre-merge gate:
+Integrate the reference validator directly into your pre-merge CI pipeline with zero external dependencies:
 
 ```bash
 python3 tools/validate_evidence.py \
   --contract examples/task-contract.json \
   --receipt examples/result-receipt.json
 ```
-Output:
-```json
-{"error_count": 0, "errors": [], "valid": true}
-```
-
-Negative fixtures intentionally exit 1 with explicit error codes:
-```bash
-python3 tools/validate_evidence.py \
-  --contract tests/fixtures/zero-collected/task-contract.json \
-  --receipt tests/fixtures/zero-collected/result-receipt.json
-```
-Output:
-```json
-{"error_count": 1, "errors": ["ZERO_COLLECTED"], "valid": false}
-```
+Exits `0` on verified evidence, or exits `1` with structured JSON error diagnostics (e.g. `ZERO_COLLECTED`, `UNEXPECTED_CHANGED_PATH`). See [Quickstart & Verification](#-quickstart--verification) below for test commands and negative fixtures.
 
 ---
 
