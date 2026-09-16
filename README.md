@@ -15,11 +15,11 @@
 </p>
 
 <p align="center">
-  <a href="#-two-things-in-one-repo">Overview</a> &middot;
-  <a href="#-why-omega-zero">Why Omega Zero</a> &middot;
-  <a href="#-independent-candidate-review">Reviewer Rigor</a> &middot;
-  <a href="#-case-study-when-green-tests-lie">Case Study</a> &middot;
-  <a href="#-quickstart--verification">Quickstart</a> &middot;
+  <a href="#scope">Scope</a> &middot;
+  <a href="#independent-candidate-review">Reviewer Rigor</a> &middot;
+  <a href="#case-study-integer-schema-bypass">Case Study</a> &middot;
+  <a href="#integration-modes">Integration</a> &middot;
+  <a href="#quickstart--verification">Quickstart</a> &middot;
   <a href="docs/ARCHITECTURE.md">Architecture</a>
 </p>
 
@@ -34,21 +34,19 @@
 
 ---
 
-## 📦 Two things in one repo
+## Scope
 
-📋 **An operating governance profile** — an authoritative contract that separates concerns: one semantic Principal, bounded worker tasks in isolated Git worktrees, independent review of the exact candidate, and human-only merge authority.
+**An operating governance profile:** An authoritative contract that separates concerns into a semantic Principal, bounded worker tasks in isolated Git worktrees, independent review of the exact candidate diff, and human-only merge authority.
 
-🧪 **A deterministic reference validator** — a pure Python standard-library verification engine ([`tools/validate_evidence.py`](tools/validate_evidence.py)) that enforces proof-of-claim receipts, zero-collected negative fixtures, 2 MiB DoS bounds, and canonical path containment in sub-10ms with zero pip bootstrapping.
+**A deterministic reference validator:** A pure Python standard-library verification engine ([`tools/validate_evidence.py`](tools/validate_evidence.py)) that enforces proof-of-claim receipts, zero-collected negative fixtures, 2 MiB DoS bounds, and canonical path containment in sub-10ms with zero external dependencies.
 
-Works with any orchestrator (Orca, Claude Code, Cursor, Aider, custom agent swarms), works with **any model** (Claude, GPT, Gemini, local), and guarantees that probabilistic LLMs cannot sneak unverified code past your human merge gate.
+Compatible with any orchestrator (Orca, Claude Code, Cursor, Aider) and model (Claude, GPT, Gemini, local). Prevents unverified code from reaching the human merge gate.
 
 ---
 
-## 🛡️ Independent Candidate Review
+## Independent Candidate Review
 
-Most agent architectures suffer from a critical failure mode: **the agent that writes the code evaluates its own work** (or reviews its own conversational chain-of-thought). When an agent self-evaluates, it confirms its own hallucinations, repeats prompt biases, and easily passes self-generated, vacuous tests.
-
-Omega Zero breaks this loop with **air-gapped candidate review**:
+When an agent evaluates its own code, it repeats prompt biases, confirms hallucinations, and passes vacuous tests. Omega Zero isolates evaluation by running an independent reviewer in a clean Git worktree with quarantined context:
 
 ```mermaid
 sequenceDiagram
@@ -76,11 +74,11 @@ sequenceDiagram
 
 ---
 
-## 🔍 Case Study: When Green Tests Lie
+## Case Study: Integer Schema Bypass
 
-In this repository's initial end-to-end run, the Builder worker implemented the reference validator. The candidate's unit test suite passed with **100% green status**.
+In this repository's initial end-to-end run, the Builder worker implemented the reference validator. The candidate's unit test suite passed all tests.
 
-However, the **Independent Reviewer** analyzed the exact revision and caught a critical schema-version bypass: in Python, `bool` subclasses `int` and `True == 1`. The candidate accepted boolean `true` and float `1.0` where integer `schema_version: 1` was strictly required by the contract:
+The independent reviewer analyzed the exact revision diff and caught a schema-version bypass: in Python, `bool` subclasses `int` and `True == 1`. The candidate accepted boolean `true` and float `1.0` where integer `schema_version: 1` was strictly required:
 
 ```python
 # ❌ Candidate Defect (100% Green Unit Tests, but Contract Violated):
@@ -91,7 +89,7 @@ if not (isinstance(val, int) and not isinstance(val, bool)):
     raise ValidationError("schema_version must be integer, not bool")
 ```
 
-Because Omega Zero mandates **independent candidate review** and **evidence-before-completion**:
+Because Omega Zero mandates independent candidate review and evidence-before-completion:
 - The defect was reproduced and reported as a P2 finding.
 - The candidate was rejected.
 - A strict integer guard (`isinstance(v, int) and not isinstance(v, bool)`) and regression tests were added.
@@ -101,7 +99,7 @@ Read the full incident breakdown in [`docs/CASE_STUDY.md`](docs/CASE_STUDY.md).
 
 ---
 
-## 🚀 Two ways to use it
+## Integration Modes
 
 ### 1. In Your Local Repo / Agent Workflow
 Use the operating contract in [`AGENTS.md`](AGENTS.md) and contract templates in [`docs/WORKFLOW.md`](docs/WORKFLOW.md) to govern your coding agents:
@@ -118,11 +116,11 @@ python3 tools/validate_evidence.py \
   --contract examples/task-contract.json \
   --receipt examples/result-receipt.json
 ```
-Exits `0` on verified evidence, or exits `1` with structured JSON error diagnostics (e.g. `ZERO_COLLECTED`, `UNEXPECTED_CHANGED_PATH`). See [Quickstart & Verification](#-quickstart--verification) below for test commands and negative fixtures.
+Exits `0` on verified evidence, or exits `1` with structured JSON error diagnostics (e.g. `ZERO_COLLECTED`, `UNEXPECTED_CHANGED_PATH`). See [Quickstart & Verification](#quickstart--verification) below for test commands and negative fixtures.
 
 ---
 
-## 🏛️ Runtime Architecture
+## Runtime Architecture
 
 ```mermaid
 flowchart TB
@@ -170,7 +168,7 @@ flowchart TB
 
 ---
 
-## 🛡️ Layered Threat & Containment Model
+## Threat & Containment Model
 
 Omega Zero explicitly separates contractual coordination from system security:
 
@@ -183,7 +181,7 @@ Omega Zero explicitly separates contractual coordination from system security:
 
 ---
 
-## ⚡ Quickstart & Verification
+## Quickstart & Verification
 
 Run the full local verification suite in sub-second time:
 
@@ -203,7 +201,7 @@ python3 tools/validate_evidence.py --contract tests/fixtures/zero-collected/task
 
 ---
 
-## 📋 Repository Map
+## Repository Map
 
 | Path | Purpose |
 |---|---|
@@ -221,6 +219,6 @@ python3 tools/validate_evidence.py --contract tests/fixtures/zero-collected/task
 
 ---
 
-## ⚖️ License
+## License
 
 This project is licensed under the [MIT License](LICENSE).
