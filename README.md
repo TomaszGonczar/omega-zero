@@ -28,9 +28,9 @@
 
 ## Scope
 
-**An operating governance profile:** An authoritative contract that separates concerns into a semantic Principal, bounded worker tasks in isolated Git worktrees, independent review of the exact candidate diff, and human-only merge authority.
-
-**A deterministic reference validator:** A pure Python standard-library verification engine ([`tools/validate_evidence.py`](tools/validate_evidence.py)) that enforces proof-of-claim receipts, zero-collected negative fixtures, 2 MiB DoS bounds, and canonical path containment in sub-10ms with zero external dependencies.
+Omega Zero provides:
+- **Governance contract:** Separates execution into a semantic Principal, bounded worker tasks in isolated Git worktrees, independent candidate review, and exclusive human merge authority.
+- **Deterministic reference validator:** A standard-library Python engine ([`tools/validate_evidence.py`](tools/validate_evidence.py)) that validates proof receipts, zero-collected negative fixtures, 2 MiB DoS limits, and canonical POSIX paths in under 10ms with zero runtime dependencies.
 
 Compatible with any orchestrator (Orca, Claude Code, Cursor, Aider) and model (Claude, GPT, Gemini, local). Prevents unverified code from reaching the human merge gate.
 
@@ -162,7 +162,7 @@ flowchart TB
 
 ## Threat & Containment Model
 
-Omega Zero explicitly separates contractual coordination from system security:
+Omega Zero separates contractual coordination from execution containment:
 
 1. **Layer 1: Contractual Governance (Task Contracts & Receipts)**  
    Lexical boundaries enforcing `allowed_paths`, input file limits (2 MiB DoS guard), canonical POSIX paths, and required check evidence.
