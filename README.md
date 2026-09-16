@@ -6,6 +6,7 @@
 </p>
 
 <p align="center">
+  <a href="REVIEWER_GUIDE.md"><b>Reviewer Guide (10 min)</b></a> &middot;
   <a href="#scope">Scope</a> &middot;
   <a href="#independent-candidate-review">Reviewer Rigor</a> &middot;
   <a href="#case-study-integer-schema-bypass">Case Study</a> &middot;
@@ -196,6 +197,7 @@ python3 tools/validate_evidence.py --contract tests/fixtures/zero-collected/task
 
 | Path | Purpose |
 |---|---|
+| [`REVIEWER_GUIDE.md`](REVIEWER_GUIDE.md) | Fast review path (10 min), reproduction commands, falsification control |
 | [`AGENTS.md`](AGENTS.md) | The operating contract an agent reads before acting in this repository |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Runtime sequence, authority matrix, monitoring, and threat boundaries |
 | [`docs/WORKFLOW.md`](docs/WORKFLOW.md) | Task Contract and Result Receipt templates, run sequence, evidence rules |
